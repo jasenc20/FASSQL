@@ -39,6 +39,27 @@ create_sql_grammar = """
     %ignore WS
 """
 
+select_sql_grammar2 = """
+    start: select_stmt
+    
+    select_stmt: "SELECT" column_list "FROM" table_name limit_clause? ";"
+
+    table_name: CNAME
+
+    column_list: column_def ("," column_def)*
+
+    column_def: CNAME -> column_def
+
+    limit_clause: "LIMIT" SIGNED_NUMBER
+
+    %import common.CNAME
+    %import common.SIGNED_NUMBER
+    %import common.ESCAPED_STRING -> STRING
+    %import common.WS
+    %ignore WS
+"""
+
+
 
 insert_sql_grammer = """
     start: insert_stmt
@@ -63,6 +84,16 @@ insert_sql_grammer = """
 """
 
 
+class SelectTable:
+    def __init__(self, name, columns, limit = None):
+        self.name = name #Table Name
+        self.columns = columns #Column List To Get
+        self.limit = limit #Limit for cases in which to only a certain amount
+
+    def __repr__(self):
+        return f"SelectTable(name={self.name}, columns={self.columns}, limit={self.limit})"
+
+
 class CreateTable:
     def __init__(self, name, columns):
         self.name = name
@@ -83,13 +114,23 @@ class InsertTable:
 
 
 class SELECTOPT(Transformer):
-    def __init__(self) -> None:
-        self.selectTree = {}
+    def start(self, items):
+        return items[0]
 
-    def assign_var(self, name, value):
-        self.selectTree[name] = value
-        print(self.selectTree)
-        return value
+    def table_name(self, items):
+        return str(items[0])
+    
+    def column_def(self, items):
+        col_name = str(items[0])
+        return (col_name)
+
+    def column_list(self, items):
+        return items
+    
+    def select_stmt(self, items):
+        columns = items[0]
+        table_name = items[1]
+        return SelectTable(table_name, columns)
 
 class CREATEOPT(Transformer):
     def start(self, items):
@@ -134,7 +175,6 @@ class INSERTOPT(Transformer):
     
     def values_list(self,items):
         return items
-
 
     def insert_stmt(self, items):
         table_name = items[0]
@@ -195,7 +235,26 @@ def InsertTableFunction(userInput):
     df.to_csv(f"OUTPUT_TABLES/{result.name}.csv", index=False)
     
 
+def selectTableFunction(userInput):
+    calc_parser = Lark(select_sql_grammar2, parser='lalr', transformer=SELECTOPT())
+    result = calc_parser.parse(userInput)
+
+    #Read the File
+    file = f"OUTPUT_TABLES/{result.name}.csv"
+    df = pd.read_csv(file)
+    headers = list(df.columns)
+
+    for index, row in df.iterrows():
+        print(row)  # prints entire row as Series
+        # or access columns
+        print(row[headers[0]], row[headers[1]])
+
+
     
+def errorHandlingFunction(command):
+    pass
+
+
 def cli():
     isLoop = True
     while isLoop:
@@ -209,6 +268,7 @@ def cli():
             elif("INSERT INTO" in userInput):
                 InsertTableFunction(userInput)
             elif("SELECT" in userInput):
+                selectTableFunction(userInput)
                 print("Select Function was hit")
 
 if __name__ == "__main__":
