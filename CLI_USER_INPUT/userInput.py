@@ -1,9 +1,12 @@
 
+from http import server
 from cv2 import transform
 from lark import Lark, Transformer
 from rich.console import Console
 import pandas as pd
 from sqlalchemy import column
+import threading
+
 
 console = Console()
 
@@ -202,7 +205,7 @@ def createTableFunction (userInput):
 
     data = []
     df = pd.DataFrame(data, columns=header)
-    fileName = f"OUTPUT_TABLES/{result.name}.csv"
+    fileName = f"/Users/jasenclerisier/Desktop/Project/FASSQL/OUTPUT_TABLES/{result.name}.csv"
     df.to_csv(fileName, index=False)
 
 
@@ -232,7 +235,7 @@ def InsertTableFunction(userInput):
     df.loc[len(df)] = dict
 
     #Save File
-    df.to_csv(f"OUTPUT_TABLES/{result.name}.csv", index=False)
+    df.to_csv(f"/Users/jasenclerisier/Desktop/Project/FASSQL/OUTPUT_TABLES/{result.name}.csv", index=False)
     
 
 def selectTableFunction(userInput):
@@ -273,4 +276,3 @@ def cli():
 
 if __name__ == "__main__":
     cli()
-    #print("You entered:", result)
