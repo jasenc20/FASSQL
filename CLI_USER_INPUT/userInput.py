@@ -205,7 +205,7 @@ def createTableFunction (userInput):
 
     data = []
     df = pd.DataFrame(data, columns=header)
-    fileName = f"/Users/jasenclerisier/Desktop/Project/FASSQL/OUTPUT_TABLES/{result.name}.csv"
+    fileName = f"../FASSQL/OUTPUT_TABLES/{result.name}.csv"
     df.to_csv(fileName, index=False)
 
 
@@ -235,7 +235,7 @@ def InsertTableFunction(userInput):
     df.loc[len(df)] = dict
 
     #Save File
-    df.to_csv(f"/Users/jasenclerisier/Desktop/Project/FASSQL/OUTPUT_TABLES/{result.name}.csv", index=False)
+    df.to_csv(f"../FASSQL/OUTPUT_TABLES/{result.name}.csv", index=False)
     
 
 def selectTableFunction(userInput):
@@ -258,10 +258,9 @@ def errorHandlingFunction(command):
     pass
 
 
-def cli():
+def cli(userInput):
     isLoop = True
     while isLoop:
-        userInput= input(">> ")
 
         if(userInput.split(">> ")[0] == "quit"):
             isLoop = False
@@ -273,6 +272,3 @@ def cli():
             elif("SELECT" in userInput):
                 selectTableFunction(userInput)
                 print("Select Function was hit")
-
-if __name__ == "__main__":
-    cli()
