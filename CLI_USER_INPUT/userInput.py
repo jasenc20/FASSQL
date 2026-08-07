@@ -252,14 +252,18 @@ def selectTableFunction(userInput):
         # or access columns
         print(row[headers[0]], row[headers[1]])
 
+    
+
 
     
 def errorHandlingFunction(command):
+    print("Error")
     pass
 
 
 def cli(userInput):
     isLoop = True
+    output = ""
     while isLoop:
 
         if(userInput.split(">> ")[0] == "quit"):
