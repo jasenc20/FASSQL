@@ -12,6 +12,7 @@ PORT = 8020
 def handle_client(conn, address):
     print('Connected with ' + address[0] + ':' + str(address[1]))
     with conn:
+
         file = conn.makefile('r')
         conn.sendall(b'>> ')  # prompt before first input
 
@@ -24,10 +25,12 @@ def handle_client(conn, address):
                         
             message = line.strip()
             print(f'Received: {message}')
-            cli(message)
+            response = cli(message)
 
             if message.lower() == 'quit':
                 break
+            
+            conn.sendall(f' {response}\n'.encode())
 
 
             #conn.sendall(message.encode())

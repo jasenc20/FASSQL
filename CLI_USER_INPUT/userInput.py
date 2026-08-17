@@ -63,6 +63,27 @@ select_sql_grammar2 = """
 """
 
 
+select_sql_grammar2 = """
+    start: select_stmt
+    
+    select_stmt: "SELECT" column_list "FROM" table_name limit_clause? ";"
+
+    table_name: CNAME
+
+    column_list: column_def ("," column_def)*
+
+    column_def: CNAME -> column_def
+
+    limit_clause: "LIMIT" SIGNED_NUMBER
+
+    %import common.CNAME
+    %import common.SIGNED_NUMBER
+    %import common.ESCAPED_STRING -> STRING
+    %import common.WS
+    %ignore WS
+"""
+
+
 
 insert_sql_grammer = """
     start: insert_stmt
@@ -208,6 +229,8 @@ def createTableFunction (userInput):
     fileName = f"../FASSQL/OUTPUT_TABLES/{result.name}.csv"
     df.to_csv(fileName, index=False)
 
+    return(f"Table {result.name} was created")
+
 
 def InsertTableFunction(userInput):
     calc_parser = Lark(insert_sql_grammer, parser='lalr', transformer=INSERTOPT())
@@ -264,15 +287,17 @@ def errorHandlingFunction(command):
 def cli(userInput):
     isLoop = True
     output = ""
-    while isLoop:
+    response = ""
 
-        if(userInput.split(">> ")[0] == "quit"):
-            isLoop = False
-        else:
-            if("CREATE TABLE" in userInput):
-                createTableFunction(userInput)
-            elif("INSERT INTO" in userInput):
-                InsertTableFunction(userInput)
-            elif("SELECT" in userInput):
-                selectTableFunction(userInput)
-                print("Select Function was hit")
+    if(userInput.split(">> ")[0] == "quit"):
+        isLoop = False
+    else:
+        if("CREATE TABLE" in userInput):
+            response = createTableFunction(userInput)
+        elif("INSERT INTO" in userInput):
+            InsertTableFunction(userInput)
+        elif("SELECT" in userInput):
+            selectTableFunction(userInput)
+            print("Select Function was hit")
+
+    return response
