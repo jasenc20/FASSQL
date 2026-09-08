@@ -1,7 +1,7 @@
 
 import socket
 import sys
-from CLI_USER_INPUT.userInput import cli
+from CLI_USER_INPUT.user_input import cli
 import threading 
 
 
