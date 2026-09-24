@@ -1,12 +1,12 @@
 
 from http import server
+from CLI_ERROR_HANDLING import cli_error_handling
 from cv2 import transform
 from lark import Lark, Transformer
 from rich.console import Console
 import pandas as pd
 from sqlalchemy import column
 import threading
-
 
 console = Console()
 
@@ -219,6 +219,7 @@ def createColumns(columns):
 
 
 def createTableFunction (userInput):
+
     calc_parser = Lark(create_sql_grammar, parser='lalr', transformer=CREATEOPT())
     result = calc_parser.parse(userInput)
 
