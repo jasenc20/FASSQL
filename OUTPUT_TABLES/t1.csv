@@ -1,2 +1,1 @@
-id(int),name(varchar)
-1,tree
+name(VARCHAR),age(INT)

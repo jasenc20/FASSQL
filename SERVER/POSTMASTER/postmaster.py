@@ -36,7 +36,7 @@ def handle_client(conn, address):
             
             conn.sendall(f' {response}\n'.encode())
 
-            with( open(f"/Users/jasenclerisier/Desktop/Project/FASSQL/LOGS/{file_name}","a",encoding="UTF_8") as log_file ):
+            with( open(f"../LOGS/{file_name}","a",encoding="UTF_8") as log_file ):
                 new_label = f"{today} ---  {response} \n"
                 log_file.write(new_label)
                 
