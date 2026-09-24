@@ -1,8 +1,9 @@
 
 import socket
 import sys
-from CLI_USER_INPUT.userInput import cli
+from CLI_USER_INPUT.user_input import cli
 import threading 
+from datetime import date
 
 
 
@@ -10,8 +11,12 @@ HOST = ''
 PORT = 8020
 
 def handle_client(conn, address):
+    today = date.today()
+    file_name = f'LOGS_{today}.txt'
+
     print('Connected with ' + address[0] + ':' + str(address[1]))
     with conn:
+
         file = conn.makefile('r')
         conn.sendall(b'>> ')  # prompt before first input
 
@@ -24,10 +29,17 @@ def handle_client(conn, address):
                         
             message = line.strip()
             print(f'Received: {message}')
-            cli(message)
+            response = cli(message)
 
             if message.lower() == 'quit':
                 break
+            
+            conn.sendall(f' {response}\n'.encode())
+
+            with( open(f"../LOGS/{file_name}","a",encoding="UTF_8") as log_file ):
+                new_label = f"{today} ---  {response} \n"
+                log_file.write(new_label)
+                
 
 
             #conn.sendall(message.encode())

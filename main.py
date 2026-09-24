@@ -2,7 +2,7 @@ import SERVER
 import SERVER.POSTMASTER
 import SERVER.POSTMASTER.postmaster
 import lark
-from CLI_USER_INPUT.userInput import cli
+from CLI_USER_INPUT.user_input import cli
 import socket
 import sys
 from SERVER.POSTMASTER.postmaster import create_server;

@@ -20,6 +20,19 @@ SQL versions are to general to throughly deal with the speed and high throughput
 - **Threading**: start with coarse-grained locks; move to MVCC/lock-free patterns for speed.
 
 
+## 🏗 Architecture (Overview)
+----------
+    Server
+-----------
+----------
+    Query Parse
+----------
+----------
+    Query Optimizer
+----------
+----------
+    Query Distributer
+----------
 
 
 ## 📂 Project Structure  
@@ -30,3 +43,4 @@ project-name/
 │── tests/        # Unit tests
 │── .gitignore    # Ignored files
 │── README.md     # This file
+

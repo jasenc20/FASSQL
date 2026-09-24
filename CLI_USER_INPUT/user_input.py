@@ -1,12 +1,12 @@
 
 from http import server
+from CLI_ERROR_HANDLING import cli_error_handling
 from cv2 import transform
 from lark import Lark, Transformer
 from rich.console import Console
 import pandas as pd
 from sqlalchemy import column
 import threading
-
 
 console = Console()
 
@@ -41,6 +41,27 @@ create_sql_grammar = """
     %import common.WS
     %ignore WS
 """
+
+select_sql_grammar2 = """
+    start: select_stmt
+    
+    select_stmt: "SELECT" column_list "FROM" table_name limit_clause? ";"
+
+    table_name: CNAME
+
+    column_list: column_def ("," column_def)*
+
+    column_def: CNAME -> column_def
+
+    limit_clause: "LIMIT" SIGNED_NUMBER
+
+    %import common.CNAME
+    %import common.SIGNED_NUMBER
+    %import common.ESCAPED_STRING -> STRING
+    %import common.WS
+    %ignore WS
+"""
+
 
 select_sql_grammar2 = """
     start: select_stmt
@@ -198,6 +219,7 @@ def createColumns(columns):
 
 
 def createTableFunction (userInput):
+
     calc_parser = Lark(create_sql_grammar, parser='lalr', transformer=CREATEOPT())
     result = calc_parser.parse(userInput)
 
@@ -207,6 +229,8 @@ def createTableFunction (userInput):
     df = pd.DataFrame(data, columns=header)
     fileName = f"../FASSQL/OUTPUT_TABLES/{result.name}.csv"
     df.to_csv(fileName, index=False)
+
+    return(f"Table {result.name} was created")
 
 
 def InsertTableFunction(userInput):
@@ -252,23 +276,29 @@ def selectTableFunction(userInput):
         # or access columns
         print(row[headers[0]], row[headers[1]])
 
+    
+
 
     
 def errorHandlingFunction(command):
+    print("Error")
     pass
 
 
 def cli(userInput):
     isLoop = True
-    while isLoop:
+    output = ""
+    response = ""
 
-        if(userInput.split(">> ")[0] == "quit"):
-            isLoop = False
-        else:
-            if("CREATE TABLE" in userInput):
-                createTableFunction(userInput)
-            elif("INSERT INTO" in userInput):
-                InsertTableFunction(userInput)
-            elif("SELECT" in userInput):
-                selectTableFunction(userInput)
-                print("Select Function was hit")
+    if(userInput.split(">> ")[0] == "quit"):
+        isLoop = False
+    else:
+        if("CREATE TABLE" in userInput):
+            response = createTableFunction(userInput)
+        elif("INSERT INTO" in userInput):
+            InsertTableFunction(userInput)
+        elif("SELECT" in userInput):
+            selectTableFunction(userInput)
+            print("Select Function was hit")
+
+    return response
