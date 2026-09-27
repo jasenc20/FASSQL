@@ -4,8 +4,13 @@ import sys
 from CLI_USER_INPUT.user_input import cli
 import threading 
 from datetime import date
+from dotenv import load_dotenv
+import os
+from CLI_QUERY_DISTRIBUTER.cli_data_base_multi_server_file_distributer import multi_server_file_distributer
 
 
+
+load_dotenv()
 
 HOST = ''
 PORT = 8020
@@ -35,10 +40,14 @@ def handle_client(conn, address):
                 break
             
             conn.sendall(f' {response}\n'.encode())
+            base = os.getenv("BASE_FILE_PATH") 
 
-            with( open(f"../LOGS/{file_name}","a",encoding="UTF_8") as log_file ):
+            with( open(f"{base}/LOGS/{file_name}","a",encoding="UTF_8") as log_file ):
                 new_label = f"{today} ---  {response} \n"
                 log_file.write(new_label)
+            
+            print(multi_server_file_distributer())
+            
                 
 
 
