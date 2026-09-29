@@ -46,7 +46,7 @@ def handle_client(conn, address):
                 new_label = f"{today} ---  {response} \n"
                 log_file.write(new_label)
             
-            print(multi_server_file_distributer())
+            #print(multi_server_file_distributer())
             
                 
 

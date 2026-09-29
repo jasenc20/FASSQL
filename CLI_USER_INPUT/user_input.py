@@ -85,8 +85,8 @@ select_sql_grammar2 = """
 insert_sql_grammer = """
     start: insert_stmt
     
-    insert_stmt: "INSERT" "INTO" table_name "(" column_list ")" "VALUES" "(" values_list ")"
-
+    insert_stmt: "INSERT" "INTO" table_name "(" column_list ")" "VALUES" rows 
+    
     table_name: CNAME
 
     column_list: column_def ("," column_def)*
@@ -96,6 +96,10 @@ insert_sql_grammer = """
     values_list: value_def("," value_def)*
 
     value_def: CNAME | SIGNED_NUMBER | STRING -> value_def
+
+    rows: row ("," row)*
+
+    row: "(" values_list ")"
 
     %import common.CNAME
     %import common.SIGNED_NUMBER
@@ -196,6 +200,12 @@ class INSERTOPT(Transformer):
     
     def values_list(self,items):
         return items
+    
+    def rows(self, items):
+        return items
+    
+    def row(self, items):
+        return items[0]
 
     def insert_stmt(self, items):
         table_name = items[0]
@@ -233,7 +243,7 @@ def createTableFunction (userInput):
 def InsertTableFunction(userInput):
     calc_parser = Lark(insert_sql_grammer, parser='lalr', transformer=INSERTOPT())
     result = calc_parser.parse(userInput)
-    
+    print("Insert Results: ", result)
     print("Insert: ", result.values)
 
     #Read the File
@@ -244,16 +254,35 @@ def InsertTableFunction(userInput):
 
 
     #Create new Data To Insert
-    dict = {}
+    dict_list = []
+    print("Headers From File: ",headers)
 
-    print(result.columns)
-    print(result.values)
+    print("Column Header: ",result.columns)
+    print("Column Value: ",result.values)
 
-    for i in range(len(headers)):
-        dict[headers[i]] = result.values[i]
+
+    for value_index in range(len(result.values)):
+        item = result.values[value_index]
+        print("Inner: ", item)
+        dict = {}
+        for i in range(len(item)):
+            dict[headers[i]] = item[i]
+
+        dict_list.append(dict)
+
+    '''for i in range(len(headers)):
+        dict = {}
+        for counter in range(len(result.values)):
+            dict[headers[i]] = result.values[counter][i]
+            print("Result Dict: ", dict)
+
+        dict_list.append(dict)'''
+
+    print("Result Dict Final: ", dict_list)
+
     
     #Append New Row
-    df.loc[len(df)] = dict
+    df = pd.concat([df, pd.DataFrame(dict_list)], ignore_index=True)
 
     #Save File
     df.to_csv(f"../FASSQL/OUTPUT_TABLES/{result.name}.csv", index=False)
