@@ -3,6 +3,7 @@ from http import server
 from CLI_ERROR_HANDLING import cli_error_handling
 from lark import Lark, Transformer
 from rich.console import Console
+from rich.table import Table
 import pandas as pd
 
 console = Console()
@@ -243,8 +244,8 @@ def createTableFunction (userInput):
 def InsertTableFunction(userInput):
     calc_parser = Lark(insert_sql_grammer, parser='lalr', transformer=INSERTOPT())
     result = calc_parser.parse(userInput)
-    print("Insert Results: ", result)
-    print("Insert: ", result.values)
+    #print("Insert Results: ", result)
+    #print("Insert: ", result.values)
 
     #Read the File
     file = f"OUTPUT_TABLES/{result.name}.csv"
@@ -252,18 +253,17 @@ def InsertTableFunction(userInput):
     headers = list(df.columns)
 
 
-
     #Create new Data To Insert
     dict_list = []
-    print("Headers From File: ",headers)
+    #print("Headers From File: ",headers)
 
-    print("Column Header: ",result.columns)
-    print("Column Value: ",result.values)
+    #print("Column Header: ",result.columns)
+    #print("Column Value: ",result.values)
 
 
     for value_index in range(len(result.values)):
         item = result.values[value_index]
-        print("Inner: ", item)
+        #print("Inner: ", item)
         dict = {}
         for i in range(len(item)):
             dict[headers[i]] = item[i]
@@ -278,7 +278,7 @@ def InsertTableFunction(userInput):
 
         dict_list.append(dict)'''
 
-    print("Result Dict Final: ", dict_list)
+    #print("Result Dict Final: ", dict_list)
 
     
     #Append New Row
@@ -286,10 +286,28 @@ def InsertTableFunction(userInput):
 
     #Save File
     df.to_csv(f"../FASSQL/OUTPUT_TABLES/{result.name}.csv", index=False)
+
+    return f"Inserted new Data into {result.name}"
     
 
 def selectTableFunction(userInput):
-    calc_parser = Lark(select_sql_grammar2, parser='lalr', transformer=SELECTOPT())
+
+    values = ["M4", "M4 Pro", "M4 Max"]
+
+    table = Table(show_header=True)
+    table.add_column("Chip")
+
+    for v in values:
+        table.add_row(v)
+
+    console = Console(width=120, force_terminal=True, color_system="standard")
+
+    with console.capture() as capture:
+        console.print(table)
+    
+    return capture.get()
+
+    '''calc_parser = Lark(select_sql_grammar2, parser='lalr', transformer=SELECTOPT())
     result = calc_parser.parse(userInput)
 
     #Read the File
@@ -300,7 +318,7 @@ def selectTableFunction(userInput):
     for index, row in df.iterrows():
         print(row)  # prints entire row as Series
         # or access columns
-        print(row[headers[0]], row[headers[1]])
+        print(row[headers[0]], row[headers[1]])'''
 
     
 
@@ -322,9 +340,9 @@ def cli(userInput):
         if("CREATE TABLE" in userInput):
             response = createTableFunction(userInput)
         elif("INSERT INTO" in userInput):
-            InsertTableFunction(userInput)
+            response = InsertTableFunction(userInput)
         elif("SELECT" in userInput):
-            selectTableFunction(userInput)
+            response = selectTableFunction(userInput)
             print("Select Function was hit")
 
     return response

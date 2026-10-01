@@ -37,15 +37,20 @@ def handle_client(conn, address):
             response = cli(message)
 
             if message.lower() == 'quit':
+                
                 break
-            
-            conn.sendall(f' {response}\n'.encode())
-            base = os.getenv("BASE_FILE_PATH") 
 
-            with( open(f"{base}/LOGS/{file_name}","a",encoding="UTF_8") as log_file ):
-                new_label = f"{today} ---  {response} \n"
-                log_file.write(new_label)
-            
+            if "select" in message.lower():
+                conn.sendall(response.replace("\n", "\r\n").encode("utf-8"))
+                #print()
+            else:
+                conn.sendall(f' {response}\n'.encode())
+                base = os.getenv("BASE_FILE_PATH") 
+
+                with( open(f"{base}/LOGS/{file_name}","a",encoding="UTF_8") as log_file ):
+                    new_label = f"{today} ---  {response} \n"
+                    log_file.write(new_label)
+                
             #print(multi_server_file_distributer())
             
                 
