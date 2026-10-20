@@ -27,12 +27,15 @@ SQL versions are to general to throughly deal with the speed and high throughput
 ----------
     Query Parse
 ----------
+- **Determine error in query before doing the heavy work of running them**
 ----------
     Query Optimizer
 ----------
+- **Utilize Set Theory, Lambda Calculus, Statistics to determine the quickest way to rewrite a SELECT or JOIN Statement**
 ----------
     Query Distributer
 ----------
+- **Leverages multi core, multi threading, and distribution of task to other servers to quickly perform certain aggregation and complex joins**
 
 
 ## 📂 Project Structure  

@@ -1,12 +1,10 @@
 
 from http import server
 from CLI_ERROR_HANDLING import cli_error_handling
-from cv2 import transform
 from lark import Lark, Transformer
 from rich.console import Console
+from rich.table import Table
 import pandas as pd
-from sqlalchemy import column
-import threading
 
 console = Console()
 
@@ -42,18 +40,13 @@ create_sql_grammar = """
     %ignore WS
 """
 
-select_sql_grammar2 = """
+select_sql_grammar1 = """
     start: select_stmt
-    
-    select_stmt: "SELECT" column_list "FROM" table_name limit_clause? ";"
+    select_stmt: "SELECT" STAR "FROM" table_name SEMI
 
     table_name: CNAME
-
-    column_list: column_def ("," column_def)*
-
-    column_def: CNAME -> column_def
-
-    limit_clause: "LIMIT" SIGNED_NUMBER
+    STAR: "*"
+    SEMI: ";"
 
     %import common.CNAME
     %import common.SIGNED_NUMBER
@@ -88,8 +81,8 @@ select_sql_grammar2 = """
 insert_sql_grammer = """
     start: insert_stmt
     
-    insert_stmt: "INSERT" "INTO" table_name "(" column_list ")" "VALUES" "(" values_list ")"
-
+    insert_stmt: "INSERT" "INTO" table_name "(" column_list ")" "VALUES" rows 
+    
     table_name: CNAME
 
     column_list: column_def ("," column_def)*
@@ -99,6 +92,10 @@ insert_sql_grammer = """
     values_list: value_def("," value_def)*
 
     value_def: CNAME | SIGNED_NUMBER | STRING -> value_def
+
+    rows: row ("," row)*
+
+    row: "(" values_list ")"
 
     %import common.CNAME
     %import common.SIGNED_NUMBER
@@ -143,13 +140,6 @@ class SELECTOPT(Transformer):
 
     def table_name(self, items):
         return str(items[0])
-    
-    def column_def(self, items):
-        col_name = str(items[0])
-        return (col_name)
-
-    def column_list(self, items):
-        return items
     
     def select_stmt(self, items):
         columns = items[0]
@@ -199,6 +189,12 @@ class INSERTOPT(Transformer):
     
     def values_list(self,items):
         return items
+    
+    def rows(self, items):
+        return items
+    
+    def row(self, items):
+        return items[0]
 
     def insert_stmt(self, items):
         table_name = items[0]
@@ -236,8 +232,8 @@ def createTableFunction (userInput):
 def InsertTableFunction(userInput):
     calc_parser = Lark(insert_sql_grammer, parser='lalr', transformer=INSERTOPT())
     result = calc_parser.parse(userInput)
-    
-    print("Insert: ", result.values)
+    #print("Insert Results: ", result)
+    #print("Insert: ", result.values)
 
     #Read the File
     file = f"OUTPUT_TABLES/{result.name}.csv"
@@ -245,25 +241,62 @@ def InsertTableFunction(userInput):
     headers = list(df.columns)
 
 
-
     #Create new Data To Insert
-    dict = {}
+    dict_list = []
+    #print("Headers From File: ",headers)
 
-    print(result.columns)
-    print(result.values)
+    #print("Column Header: ",result.columns)
+    #print("Column Value: ",result.values)
 
-    for i in range(len(headers)):
-        dict[headers[i]] = result.values[i]
+
+    for value_index in range(len(result.values)):
+        item = result.values[value_index]
+        #print("Inner: ", item)
+        dict = {}
+        for i in range(len(item)):
+            dict[headers[i]] = item[i]
+
+        dict_list.append(dict)
+
+    '''for i in range(len(headers)):
+        dict = {}
+        for counter in range(len(result.values)):
+            dict[headers[i]] = result.values[counter][i]
+            print("Result Dict: ", dict)
+
+        dict_list.append(dict)'''
+
+    #print("Result Dict Final: ", dict_list)
+
     
     #Append New Row
-    df.loc[len(df)] = dict
+    df = pd.concat([df, pd.DataFrame(dict_list)], ignore_index=True)
 
     #Save File
     df.to_csv(f"../FASSQL/OUTPUT_TABLES/{result.name}.csv", index=False)
+
+    return f"Inserted new Data into {result.name}"
     
 
 def selectTableFunction(userInput):
-    calc_parser = Lark(select_sql_grammar2, parser='lalr', transformer=SELECTOPT())
+
+    #Test Data
+    '''values = ["M4", "M4 Pro", "M4 Max"]
+
+    table = Table(show_header=True)
+    table.add_column("Chip")
+
+    for v in values:
+        table.add_row(v)
+
+    console = Console(width=120, force_terminal=True, color_system="standard")
+
+    with console.capture() as capture:
+        console.print(table)'''
+    
+    # Actual Data
+
+    calc_parser = Lark(select_sql_grammar1, parser='lalr', transformer=SELECTOPT())
     result = calc_parser.parse(userInput)
 
     #Read the File
@@ -271,10 +304,35 @@ def selectTableFunction(userInput):
     df = pd.read_csv(file)
     headers = list(df.columns)
 
+    table = Table(show_header=True)
+
+    for header in headers:
+        table.add_column(header)
+    
+    final_list = []
     for index, row in df.iterrows():
-        print(row)  # prints entire row as Series
+        #print(row)   # prints entire row as Series
         # or access columns
-        print(row[headers[0]], row[headers[1]])
+        #print(row[headers[0]], row[headers[1]])
+        temp_row = []
+        for i in range(len(headers)):
+            temp_row.append(str(row[headers[i]]))
+        final_list.append(temp_row)
+
+    
+    for v in final_list:
+        table.add_row(*v)
+
+    
+    console = Console(width=120, force_terminal=True, color_system="standard")
+
+    
+
+    with console.capture() as capture:
+        console.print(table)
+    
+    return capture.get()
+
 
     
 
@@ -296,9 +354,9 @@ def cli(userInput):
         if("CREATE TABLE" in userInput):
             response = createTableFunction(userInput)
         elif("INSERT INTO" in userInput):
-            InsertTableFunction(userInput)
+            response = InsertTableFunction(userInput)
         elif("SELECT" in userInput):
-            selectTableFunction(userInput)
+            response = selectTableFunction(userInput)
             print("Select Function was hit")
 
     return response
