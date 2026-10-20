@@ -40,18 +40,13 @@ create_sql_grammar = """
     %ignore WS
 """
 
-select_sql_grammar2 = """
+select_sql_grammar1 = """
     start: select_stmt
-    
-    select_stmt: "SELECT" column_list "FROM" table_name limit_clause? ";"
+    select_stmt: "SELECT" STAR "FROM" table_name SEMI
 
     table_name: CNAME
-
-    column_list: column_def ("," column_def)*
-
-    column_def: CNAME -> column_def
-
-    limit_clause: "LIMIT" SIGNED_NUMBER
+    STAR: "*"
+    SEMI: ";"
 
     %import common.CNAME
     %import common.SIGNED_NUMBER
@@ -145,13 +140,6 @@ class SELECTOPT(Transformer):
 
     def table_name(self, items):
         return str(items[0])
-    
-    def column_def(self, items):
-        col_name = str(items[0])
-        return (col_name)
-
-    def column_list(self, items):
-        return items
     
     def select_stmt(self, items):
         columns = items[0]
@@ -292,7 +280,8 @@ def InsertTableFunction(userInput):
 
 def selectTableFunction(userInput):
 
-    values = ["M4", "M4 Pro", "M4 Max"]
+    #Test Data
+    '''values = ["M4", "M4 Pro", "M4 Max"]
 
     table = Table(show_header=True)
     table.add_column("Chip")
@@ -303,11 +292,11 @@ def selectTableFunction(userInput):
     console = Console(width=120, force_terminal=True, color_system="standard")
 
     with console.capture() as capture:
-        console.print(table)
+        console.print(table)'''
     
-    return capture.get()
+    # Actual Data
 
-    '''calc_parser = Lark(select_sql_grammar2, parser='lalr', transformer=SELECTOPT())
+    calc_parser = Lark(select_sql_grammar1, parser='lalr', transformer=SELECTOPT())
     result = calc_parser.parse(userInput)
 
     #Read the File
@@ -315,10 +304,35 @@ def selectTableFunction(userInput):
     df = pd.read_csv(file)
     headers = list(df.columns)
 
+    table = Table(show_header=True)
+
+    for header in headers:
+        table.add_column(header)
+    
+    final_list = []
     for index, row in df.iterrows():
-        print(row)  # prints entire row as Series
+        #print(row)   # prints entire row as Series
         # or access columns
-        print(row[headers[0]], row[headers[1]])'''
+        #print(row[headers[0]], row[headers[1]])
+        temp_row = []
+        for i in range(len(headers)):
+            temp_row.append(str(row[headers[i]]))
+        final_list.append(temp_row)
+
+    
+    for v in final_list:
+        table.add_row(*v)
+
+    
+    console = Console(width=120, force_terminal=True, color_system="standard")
+
+    
+
+    with console.capture() as capture:
+        console.print(table)
+    
+    return capture.get()
+
 
     
 
